@@ -1,39 +1,219 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>CSV Cleaner</title>
+    <title>CSV Cleaner Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        .drop-zone {
-            width: 300px;
-            height: 200px;
-            border: 2px dashed #ccc;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1c2e, #16213e);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
             text-align: center;
-            padding: 20px;
-            margin: 20px auto;
         }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .subtitle {
+            color: #8890b5;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.2s backwards;
+        }
+
+        .drop-zone {
+            width: 100%;
+            height: 300px;
+            border: 3px dashed #4facfe;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.8s ease-out 0.4s backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.15);
+        }
+
         .drop-zone.dragover {
-            background-color: #e1e1e1;
-            border-color: #999;
+            background: rgba(79, 172, 254, 0.1);
+            border-color: #00f2fe;
+            transform: scale(1.02);
         }
+
+        .drop-zone.processing {
+            border-color: #f7c456;
+        }
+
+        .drop-zone.success {
+            border-color: #4caf50;
+        }
+
+        .drop-zone.error {
+            border-color: #ff4444;
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #4facfe;
+        }
+
+        .select-button {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .select-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
         #file-list {
-            margin: 20px auto;
-            max-width: 300px;
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.8s ease-out 0.6s backwards;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(79, 172, 254, 0.1);
+            border-left-color: #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-message.show {
+            opacity: 1;
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 0.5rem 0;
+        }
+
+        .file-preview .file-icon {
+            color: #4facfe;
         }
     </style>
 </head>
 <body>
-    <div class="drop-zone" id="dropZone">
-        <p>Drag and drop up to 20 CSV files here</p>
-        <p>or</p>
-        <input type="file" id="fileInput" multiple accept=".csv" style="display: none;">
-        <button onclick="document.getElementById('fileInput').click()">Select Files</button>
+    <div class="container">
+        <h1>CSV Cleaner Pro</h1>
+        <p class="subtitle">Drop your CSV files to clean and combine them instantly</p>
+        
+        <div class="drop-zone" id="dropZone">
+            <div class="icon">📄</div>
+            <p>Drag and drop up to 20 CSV files here</p>
+            <p>or</p>
+            <input type="file" id="fileInput" multiple accept=".csv" style="display: none;">
+            <button class="select-button" onclick="document.getElementById('fileInput').click()">Select Files</button>
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <div class="status-message" id="statusMessage"></div>
+        <div id="file-list"></div>
     </div>
-    <div id="file-list"></div>
 
     <script>
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('file-list');
+        const progressBar = document.getElementById('progressBar');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusMessage = document.getElementById('statusMessage');
+
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message show';
+            dropZone.className = `drop-zone ${type}`;
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+        }
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
@@ -73,31 +253,49 @@
             const files = e.target.files;
             
             if (files.length > 20) {
-                alert('Maximum 20 files allowed');
+                showStatus('Maximum 20 files allowed', 'error');
                 return;
             }
 
             const formData = new FormData();
+            let validFiles = true;
             
+            fileList.innerHTML = '<h3>Selected Files:</h3>';
             for (let i = 0; i < files.length; i++) {
                 if (!files[i].name.toLowerCase().endsWith('.csv')) {
-                    alert('Only CSV files are allowed');
+                    showStatus('Only CSV files are allowed', 'error');
+                    validFiles = false;
                     return;
                 }
                 formData.append('files[]', files[i]);
+                
+                // Add file preview
+                const filePreview = document.createElement('div');
+                filePreview.className = 'file-preview';
+                filePreview.innerHTML = `
+                    <span class="file-icon">📄</span>
+                    <span>${files[i].name}</span>
+                `;
+                fileList.appendChild(filePreview);
             }
 
-            fileList.innerHTML = 'Uploading and processing files...';
+            if (!validFiles) return;
+
+            showStatus('Processing files...', 'processing');
+            loadingSpinner.style.display = 'block';
+            updateProgress(30);
 
             fetch('/upload', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
+                updateProgress(60);
                 if (!response.ok) throw new Error('Upload failed');
                 return response.blob();
             })
             .then(blob => {
+                updateProgress(90);
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -105,10 +303,18 @@
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
-                fileList.innerHTML = 'Processing complete! Downloading cleaned file...';
+                updateProgress(100);
+                showStatus('Processing complete! Downloading cleaned file...', 'success');
+                loadingSpinner.style.display = 'none';
+                
+                setTimeout(() => {
+                    updateProgress(0);
+                }, 2000);
             })
             .catch(error => {
-                fileList.innerHTML = 'Error: ' + error.message;
+                showStatus('Error: ' + error.message, 'error');
+                loadingSpinner.style.display = 'none';
+                updateProgress(0);
             });
         }
     </script>
